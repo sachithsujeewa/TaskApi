@@ -20,6 +20,38 @@ namespace TaskApi.Controllers
     {
         private readonly IConfiguration configuration;
 
+        // TODO: this users need to be retrive from database 
+        public static IList<User> Users { get; set; } = new List<User>
+        {
+            new User
+            {
+                Id = 1,
+                Username = "user",
+                Password = "1234",
+                Email = "user@powerngage.com",
+                UserType = UserType.User
+            },
+            new User
+            {
+                Id =2,
+                Username = "sachith",
+                Password = "123",
+                Email = "sachith@powerngage.com",
+                UserType = UserType.Admin
+            }
+        };
+
+        public static IList<TodoTask> Tasks = new List<TodoTask>()
+        {
+            new TodoTask
+            {
+                Id = 1,
+                IsDone = false,
+                IsRemoved = false,
+                TaskName = "Sample Task"
+            }
+        };
+
         public LoginController(IConfiguration configuration)
         {
             this.configuration = configuration;
@@ -40,7 +72,7 @@ namespace TaskApi.Controllers
             if (user != null)
             {
                 var tokenString = GenerateJSONWebToken(user);
-                response = Ok(new { token = tokenString });
+                response = Ok(new { token = tokenString, role = user.UserType });
             }
 
             return response;
@@ -70,40 +102,17 @@ namespace TaskApi.Controllers
 
         private User AuthenticateUser(User login)
         {
-            User user = null;
-            if (login.Username == "sachith" && login.Password == "123")
-            {
-                user = new User
-                {
-                    Username = "sachith",
-                    Password = "123",
-                    Email = "sachith@powerngage.com",
-                    UserType = UserType.Admin
-                };
-            }
-
-            if (login.Username == "user" && login.Password == "1234")
-            {
-                user = new User
-                {
-                    Username = "user",
-                    Password = "1234",
-                    Email = "user@powerngage.com",
-                    UserType = UserType.User
-                };
-            }
-
-            return user;
+            return  Users.FirstOrDefault(s => s.Username == login.Username && s.Password == login.Password);
         }
 
         [Authorize]
         [HttpPost("Post")]
-        public string Post()
+        public User Post()
         {
             var identity = HttpContext.User.Identity as ClaimsIdentity;
             IList<Claim> claims = identity.Claims.ToList();
             var username = claims[0].Value;
-            return "Welcome, " + username;
+            return Users.FirstOrDefault(s => s.Username == username);
         }
 
         [Authorize]
@@ -115,5 +124,41 @@ namespace TaskApi.Controllers
                 "value1", "value2", "Value3"
             }; 
         }
+
+        [Authorize]
+        [HttpGet("GetTasks")]
+        public ActionResult<IEnumerable<TodoTask>> GetTasks()
+        {
+            return Tasks.ToList();
+        }
+
+
+        [Authorize]
+        [HttpGet("AddTask")]
+        public ActionResult<TodoTask> AddTask(string task)
+        {
+            var id = Tasks.OrderByDescending(t => t.Id).FirstOrDefault().Id + 1;
+
+            var todoTask = new TodoTask
+            {
+                Id = id,
+                IsDone = false,
+                TaskName = task,
+                IsRemoved = false
+            };
+            Tasks.Add(todoTask);
+            return todoTask;
+        }
+
+
+        //[Authorize]
+        //[HttpPost("doTask")]
+        //public ActionResult<TodoTask> DoTask(int id, bool isDone)
+        //{
+        //    var task = Tasks.FirstOrDefault(t => t.Id == id)
+        //    todoTask.Is            Tasks.Add(todoTask);
+        //    return todoTask;
+        //}
+
     }
 }
