@@ -102,7 +102,7 @@ namespace TaskApi.Controllers
 
         private User AuthenticateUser(User login)
         {
-            return  Users.FirstOrDefault(s => s.Username == login.Username && s.Password == login.Password);
+            return Users.FirstOrDefault(s => s.Username == login.Username && s.Password == login.Password);
         }
 
         [Authorize]
@@ -122,7 +122,7 @@ namespace TaskApi.Controllers
             return new string[]
             {
                 "value1", "value2", "Value3"
-            }; 
+            };
         }
 
         [Authorize]
@@ -151,14 +151,15 @@ namespace TaskApi.Controllers
         }
 
 
-        //[Authorize]
-        //[HttpPost("doTask")]
-        //public ActionResult<TodoTask> DoTask(int id, bool isDone)
-        //{
-        //    var task = Tasks.FirstOrDefault(t => t.Id == id)
-        //    todoTask.Is            Tasks.Add(todoTask);
-        //    return todoTask;
-        //}
+        [Authorize]
+        [HttpPost("doTask")]
+        public ActionResult<TodoTask> DoTask(int id, bool isDone)
+        {
+            var task = Tasks.FirstOrDefault(t => t.Id == id);
+            if (task != null)
+                task.IsDone = isDone;
+            return task;
+        }
 
     }
 }
